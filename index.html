@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Appointment Booking</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .progress-bar:before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .progress-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 20%;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .step-label {
+            font-size: 14px;
+            color: #95a5a6;
+        }
+        
+        .progress-step.active .step-number {
+            background: #3498db;
+        }
+        
+        .progress-step.completed .step-number {
+            background: #2ecc71;
+        }
+        
+        .progress-step.active .step-label {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .progress-step.completed .step-label {
+            color: #2ecc71;
+        }
+        
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .specialty-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .specialty-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .specialty-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+        }
+        
+        .specialty-card.selected {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        
+        .specialty-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .specialty-card p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .calendar {
+            margin-bottom: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .calendar-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav button {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background: #f0f0f0;
+        }
+        
+        .calendar-day {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .calendar-day:hover {
+            background: #f0f8ff;
+        }
+        
+        .calendar-day.selected {
+            background: #3498db;
+            color: white;
+        }
+        
+        .calendar-day.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .time-slot {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .time-slot:hover {
+            border-color: #3498db;
+        }
+        
+        .time-slot.selected {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .time-slot.disabled {
+            background: #f5f5f5;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .review-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        
+        .review-label {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .review-value {
+            font-size: 16px;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-prev {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-prev:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-next {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: #2980b9;
+        }
+        
+        .btn-submit {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background: #27ae60;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .doctor-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .doctor-card:hover {
+            border-color: #3498db;
+        }
+        
+        .doctor-card.selected {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        
+        .doctor-card h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        
+        .doctor-card p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .specialty-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Medical Appointment Booking</h1>
+        
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Specialty</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Doctor & Time</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Appointment Details</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Patient Info</div>
+            </div>
+            <div class="progress-step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Specialty Selection -->
+        <div class="form-step active" id="step-1">
+            <h2>Select a Medical Specialty</h2>
+            <p>Choose the medical specialty that matches your needs.</p>
+            
+            <div class="specialty-grid">
+                <div class="specialty-card" data-specialty="cardiology">
+                    <h3>Cardiology</h3>
+                    <p>Specializes in heart and cardiovascular system disorders.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="neurology">
+                    <h3>Neurology</h3>
+                    <p>Focuses on disorders of the nervous system, brain, and spinal cord.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="pediatrics">
+                    <h3>Pediatrics</h3>
+                    <p>Provides medical care for infants, children, and adolescents.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="dermatology">
+                    <h3>Dermatology</h3>
+                    <p>Specializes in skin, hair, and nail conditions.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="internal-medicine">
+                    <h3>Internal Medicine</h3>
+                    <p>Focuses on adult medicine and prevention/diagnosis of diseases.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="family-medicine">
+                    <h3>Family Medicine</h3>
+                    <p>Comprehensive healthcare for individuals and families of all ages.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="ophtalmology">
+                    <h3>Ophtalmology</h3>
+                    <p>Specializes in eye and vision care, including surgery.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="orthopedics">
+                    <h3>Orthopedics</h3>
+                    <p>Focuses on musculoskeletal system including bones, joints, and muscles.</p>
+                </div>
+                
+                <div class="specialty-card" data-specialty="psychiatrics">
+                    <h3>Psychiatrics</h3>
+                    <p>Specializes in mental health, emotional disorders, and behavioral issues.</p>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-prev hidden">Previous</button>
+                <button class="btn-next">Next</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Doctor & Time Selection -->
+        <div class="form-step" id="step-2">
+            <h2>Select Doctor & Appointment Time</h2>
+            
+            <div class="form-group">
+                <label for="doctor">Available Doctors</label>
+                <div id="doctor-list">
+                    <!-- Doctors will be populated by JavaScript based on specialty -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Date</label>
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-title" id="calendar-month-year">June 2023</div>
+                        <div class="calendar-nav">
+                            <button id="prev-month">&lt;</button>
+                            <button id="next-month">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-days-header">
+                        <div class="calendar-day-header">Sun</div>
+                        <div class="calendar-day-header">Mon</div>
+                        <div class="calendar-day-header">Tue</div>
+                        <div class="calendar-day-header">Wed</div>
+                        <div class="calendar-day-header">Thu</div>
+                        <div class="calendar-day-header">Fri</div>
+                        <div class="calendar-day-header">Sat</div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-dates"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Available Time Slots</label>
+                <div class="time-slots" id="time-slots">
+                    <!-- Time slots will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-prev">Previous</button>
+                <button class="btn-next">Next</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Appointment Details -->
+        <div class="form-step" id="step-3">
+            <h2>Appointment Details</h2>
+            <p>Review your appointment details before proceeding.</p>
+            
+            <div class="review-item">
+                <div class="review-label">Specialty</div>
+                <div class="review-value" id="review-specialty"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Doctor</div>
+                <div class="review-value" id="review-doctor"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Appointment Date</div>
+                <div class="review-value" id="review-date"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Appointment Time</div>
+                <div class="review-value" id="review-time"></div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-prev">Previous</button>
+                <button class="btn-next">Next</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Patient Information -->
+        <div class="form-step" id="step-4">
+            <h2>Patient Information</h2>
+            <p>Please provide your personal information.</p>
+            
+            <div class="form-group">
+                <label for="full-name">Full Name</label>
+                <input type="text" id="full-name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="reason">Reason for Consultation</label>
+                <textarea id="reason" required></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-prev">Previous</button>
+                <button class="btn-next">Next</button>
+            </div>
+        </div>
+        
+        <!-- Step 5: Confirmation -->
+        <div class="form-step" id="step-5">
+            <h2>Confirmation</h2>
+            <p>Please review all information before submitting your appointment request.</p>
+            
+            <div class="review-item">
+                <div class="review-label">Specialty</div>
+                <div class="review-value" id="confirm-specialty"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Doctor</div>
+                <div class="review-value" id="confirm-doctor"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Appointment Date</div>
+                <div class="review-value" id="confirm-date"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Appointment Time</div>
+                <div class="review-value" id="confirm-time"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Patient Name</div>
+                <div class="review-value" id="confirm-name"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Email</div>
+                <div class="review-value" id="confirm-email"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Phone</div>
+                <div class="review-value" id="confirm-phone"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Date of Birth</div>
+                <div class="review-value" id="confirm-dob"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Gender</div>
+                <div class="review-value" id="confirm-gender"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Address</div>
+                <div class="review-value" id="confirm-address"></div>
+            </div>
+            
+            <div class="review-item">
+                <div class="review-label">Reason for Consultation</div>
+                <div class="review-value" id="confirm-reason"></div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-prev">Previous</button>
+                <button class="btn-submit">Confirm Appointment</button>
+            </div>
+        </div>
+        
+        <!-- Success Message (hidden by default) -->
+        <div id="success-message" class="hidden" style="text-align: center; padding: 30px;">
+            <h2 style="color: #2ecc71;">Appointment Booked Successfully!</h2>
+            <p>Your appointment has been confirmed. You will receive a confirmation email shortly.</p>
+            <p>Thank you for choosing our medical services.</p>
+            <button id="new-appointment" style="background: #3498db; color: white; margin-top: 20px;">Book Another Appointment</button>
+        </div>
+    </div>
+
+    <script>
+        // Current step tracking
+        let currentStep = 1;
+        const totalSteps = 5;
+        
+        // Selected values
+        const appointmentData = {
+            specialty: null,
+            doctor: null,
+            date: null,
+            time: null,
+            patientInfo: {
+                name: null,
+                email: null,
+                phone: null,
+                dob: null,
+                gender: null,
+                address: null,
+                reason: null
+            }
+        };
+        
+        // Doctors data by specialty
+        const doctorsBySpecialty = {
+            cardiology: [
+                { name: "Dr. Sheila Mae Onsana", specialty: "Cardiology", experience: "10 years", education: "MD, Cardiology Fellowship" },
+                { name: "Dr. Harold Dizon", specialty: "Cardiology", experience: "15 years", education: "MD, PhD in Cardiovascular Medicine" }
+            ],
+            neurology: [
+                { name: "Dr. Jovan Nadala", specialty: "Neurology", experience: "12 years", education: "MD, Neurology Residency" }
+            ],
+            pediatrics: [
+                { name: "Dr. Sebastian Tagalog", specialty: "Pediatrics", experience: "8 years", education: "MD, Pediatric Board Certified" },
+                { name: "Dr. Jema Legaspi", specialty: "Pediatrics", experience: "5 years", education: "MD, Pediatric Residency" }
+            ],
+            dermatology: [
+                { name: "Dr. Sheila Mae Onsana", specialty: "Dermatology", experience: "7 years", education: "MD, Dermatology Fellowship" }
+            ],
+            "internal-medicine": [
+                { name: "Dr. Harold Dizon", specialty: "Internal Medicine", experience: "20 years", education: "MD, Internal Medicine Board Certified" }
+            ],
+            "family-medicine": [
+                { name: "Dr. Jema Legaspi", specialty: "Family Medicine", experience: "6 years", education: "MD, Family Medicine Residency" }
+            ],
+            ophtalmology: [
+                { name: "Dr. Jovan Nadala", specialty: "Ophtalmology", experience: "9 years", education: "MD, Ophtalmology Fellowship" }
+            ],
+            orthopedics: [
+                { name: "Dr. Sebastian Tagalog", specialty: "Orthopedics", experience: "11 years", education: "MD, Orthopedic Surgery Residency" }
+            ],
+            psychiatrics: [
+                { name: "Dr. Sheila Mae Onsana", specialty: "Psychiatrics", experience: "14 years", education: "MD, Psychiatry Residency" }
+            ]
+        };
+        
+        // Calendar variables
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        
+        // DOM elements
+        const specialtyCards = document.querySelectorAll('.specialty-card');
+        const doctorList = document.getElementById('doctor-list');
+        const calendarMonthYear = document.getElementById('calendar-month-year');
+        const calendarDates = document.getElementById('calendar-dates');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const timeSlots = document.getElementById('time-slots');
+        
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Step navigation
+            setupStepNavigation();
+            
+            // Specialty selection
+            setupSpecialtySelection();
+            
+            // Calendar setup
+            setupCalendar();
+            
+            // Time slot setup
+            setupTimeSlots();
+            
+            // Form submission
+            setupFormSubmission();
+            
+            // New appointment button
+            document.getElementById('new-appointment').addEventListener('click', resetForm);
+        });
+        
+        function setupStepNavigation() {
+            const prevButtons = document.querySelectorAll('.btn-prev');
+            const nextButtons = document.querySelectorAll('.btn-next');
+            
+            prevButtons.forEach(button => {
+                button.addEventListener('click', goToPreviousStep);
+            });
+            
+            nextButtons.forEach(button => {
+                button.addEventListener('click', goToNextStep);
+            });
+        }
+        
+        function goToPreviousStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+                
+                // Show previous step
+                currentStep--;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+                
+                // Show/hide previous button
+                updateButtonVisibility();
+            }
+        }
+        
+        function goToNextStep() {
+            // Validate current step before proceeding
+            if (validateCurrentStep()) {
+                // Update review/confirmation sections if needed
+                if (currentStep === 1 || currentStep === 2) {
+                    updateReviewSection();
+                } else if (currentStep === 4) {
+                    updateConfirmationSection();
+                }
+                
+                // Hide current step
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+                
+                // Mark current step as completed
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
+                
+                // Show next step
+                currentStep++;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+                
+                // Show/hide previous button
+                updateButtonVisibility();
+            }
+        }
+        
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1:
+                    if (!appointmentData.specialty) {
+                        alert('Please select a medical specialty');
+                        return false;
+                    }
+                    return true;
+                case 2:
+                    if (!appointmentData.doctor) {
+                        alert('Please select a doctor');
+                        return false;
+                    }
+                    if (!appointmentData.date) {
+                        alert('Please select a date');
+                        return false;
+                    }
+                    if (!appointmentData.time) {
+                        alert('Please select a time slot');
+                        return false;
+                    }
+                    return true;
+                case 4:
+                    // Validate patient info
+                    const name = document.getElementById('full-name').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const phone = document.getElementById('phone').value.trim();
+                    const dob = document.getElementById('dob').value;
+                    const gender = document.getElementById('gender').value;
+                    const address = document.getElementById('address').value.trim();
+                    const reason = document.getElementById('reason').value.trim();
+                    
+                    if (!name) {
+                        alert('Please enter your full name');
+                        return false;
+                    }
+                    if (!email || !validateEmail(email)) {
+                        alert('Please enter a valid email address');
+                        return false;
+                    }
+                    if (!phone) {
+                        alert('Please enter your phone number');
+                        return false;
+                    }
+                    if (!dob) {
+                        alert('Please enter your date of birth');
+                        return false;
+                    }
+                    if (!gender) {
+                        alert('Please select your gender');
+                        return false;
+                    }
+                    if (!address) {
+                        alert('Please enter your address');
+                        return false;
+                    }
+                    if (!reason) {
+                        alert('Please enter the reason for consultation');
+                        return false;
+                    }
+                    
+                    // Save patient info
+                    appointmentData.patientInfo = {
+                        name,
+                        email,
+                        phone,
+                        dob: formatDate(dob),
+                        gender,
+                        address,
+                        reason
+                    };
+                    
+                    return true;
+                default:
+                    return true;
+            }
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function updateButtonVisibility() {
+            const prevButtons = document.querySelectorAll('.btn-prev');
+            
+            prevButtons.forEach(button => {
+                if (currentStep === 1) {
+                    button.classList.add('hidden');
+                } else {
+                    button.classList.remove('hidden');
+                }
+            });
+        }
+        
+        function setupSpecialtySelection() {
+            specialtyCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    specialtyCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Save selected specialty
+                    const specialty = this.getAttribute('data-specialty');
+                    appointmentData.specialty = specialty;
+                    
+                    // Update doctors list
+                    updateDoctorsList(specialty);
+                });
+            });
+        }
+        
+        function updateDoctorsList(specialty) {
+            doctorList.innerHTML = '';
+            
+            if (doctorsBySpecialty[specialty]) {
+                doctorsBySpecialty[specialty].forEach(doctor => {
+                    const doctorCard = document.createElement('div');
+                    doctorCard.className = 'doctor-card';
+                    doctorCard.innerHTML = `
+                        <h3>${doctor.name}</h3>
+                        <p>Specialty: ${doctor.specialty}</p>
+                        <p>Experience: ${doctor.experience}</p>
+                        <p>Education: ${doctor.education}</p>
+                    `;
+                    
+                    doctorCard.addEventListener('click', function() {
+                        // Remove selected class from all doctor cards
+                        document.querySelectorAll('.doctor-card').forEach(card => {
+                            card.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked card
+                        this.classList.add('selected');
+                        
+                        // Save selected doctor
+                        appointmentData.doctor = doctor.name;
+                    });
+                    
+                    doctorList.appendChild(doctorCard);
+                });
+            }
+        }
+        
+        function setupCalendar() {
+            prevMonthBtn.addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+            
+            nextMonthBtn.addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+            
+            renderCalendar();
+        }
+        
+        function renderCalendar() {
+            // Update month/year display
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", 
+                              "August", "September", "October", "November", "December"];
+            calendarMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            // Clear previous dates
+            calendarDates.innerHTML = '';
+            
+            // Get first day of month and total days in month
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            // Get today's date for comparison
+            const today = new Date();
+            const currentDate = today.getDate();
+            const currentMonthToday = today.getMonth();
+            const currentYearToday = today.getFullYear();
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day disabled';
+                calendarDates.appendChild(emptyCell);
+            }
+            
+            // Add cells for each day of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateCell = document.createElement('div');
+                dateCell.className = 'calendar-day';
+                dateCell.textContent = day;
+                
+                // Disable past dates
+                if (currentYear > currentYearToday || 
+                    (currentYear === currentYearToday && currentMonth > currentMonthToday) ||
+                    (currentYear === currentYearToday && currentMonth === currentMonthToday && day >= currentDate)) {
+                    
+                    dateCell.addEventListener('click', function() {
+                        // Remove selected class from all date cells
+                        document.querySelectorAll('.calendar-day').forEach(cell => {
+                            cell.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked cell
+                        this.classList.add('selected');
+                        
+                        // Save selected date
+                        const selectedDate = new Date(currentYear, currentMonth, day);
+                        appointmentData.date = formatDate(selectedDate);
+                    });
+                } else {
+                    dateCell.classList.add('disabled');
+                }
+                
+                calendarDates.appendChild(dateCell);
+            }
+        }
+        
+        function setupTimeSlots() {
+            // Generate time slots from 7 AM to 8 PM in 30-minute increments
+            const startHour = 7;
+            const endHour = 20;
+            
+            for (let hour = startHour; hour < endHour; hour++) {
+                for (let minutes = 0; minutes < 60; minutes += 30) {
+                    const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                    const displayTime = `${hour > 12 ? hour - 12 : hour}:${minutes.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+                    
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    timeSlot.textContent = displayTime;
+                    timeSlot.dataset.time = timeString;
+                    
+                    timeSlot.addEventListener('click', function() {
+                        // Remove selected class from all time slots
+                        document.querySelectorAll('.time-slot').forEach(slot => {
+                            slot.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked slot
+                        this.classList.add('selected');
+                        
+                        // Save selected time
+                        appointmentData.time = displayTime;
+                    });
+                    
+                    timeSlots.appendChild(timeSlot);
+                }
+            }
+        }
+        
+        function updateReviewSection() {
+            document.getElementById('review-specialty').textContent = getSpecialtyName(appointmentData.specialty);
+            document.getElementById('review-doctor').textContent = appointmentData.doctor || 'Not selected';
+            document.getElementById('review-date').textContent = appointmentData.date || 'Not selected';
+            document.getElementById('review-time').textContent = appointmentData.time || 'Not selected';
+        }
+        
+        function updateConfirmationSection() {
+            document.getElementById('confirm-specialty').textContent = getSpecialtyName(appointmentData.specialty);
+            document.getElementById('confirm-doctor').textContent = appointmentData.doctor;
+            document.getElementById('confirm-date').textContent = appointmentData.date;
+            document.getElementById('confirm-time').textContent = appointmentData.time;
+            
+            document.getElementById('confirm-name').textContent = appointmentData.patientInfo.name;
+            document.getElementById('confirm-email').textContent = appointmentData.patientInfo.email;
+            document.getElementById('confirm-phone').textContent = appointmentData.patientInfo.phone;
+            document.getElementById('confirm-dob').textContent = appointmentData.patientInfo.dob;
+            document.getElementById('confirm-gender').textContent = appointmentData.patientInfo.gender;
+            document.getElementById('confirm-address').textContent = appointmentData.patientInfo.address;
+            document.getElementById('confirm-reason').textContent = appointmentData.patientInfo.reason;
+        }
+        
+        function getSpecialtyName(specialtyKey) {
+            const specialtyNames = {
+                'cardiology': 'Cardiology',
+                'neurology': 'Neurology',
+                'pediatrics': 'Pediatrics',
+                'dermatology': 'Dermatology',
+                'internal-medicine': 'Internal Medicine',
+                'family-medicine': 'Family Medicine',
+                'ophtalmology': 'Ophtalmology',
+                'orthopedics': 'Orthopedics',
+                'psychiatrics': 'Psychiatrics'
+            };
+            
+            return specialtyNames[specialtyKey] || 'Not selected';
+        }
+        
+        function formatDate(date) {
+            if (!date) return '';
+            
+            const d = new Date(date);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return d.toLocaleDateString('en-US', options);
+        }
+        
+        function setupFormSubmission() {
+            document.querySelector('.btn-submit').addEventListener('click', function() {
+                // In a real application, you would send the data to a server here
+                console.log('Appointment data:', appointmentData);
+                
+                // Show success message
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                document.getElementById('success-message').classList.remove('hidden');
+            });
+        }
+        
+        function resetForm() {
+            // Reset all steps
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById(`step-${i}`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${i}"]`).classList.remove('active', 'completed');
+            }
+            
+            // Reset to step 1
+            currentStep = 1;
+            document.getElementById('step-1').classList.add('active');
+            document.querySelector('.progress-step[data-step="1"]').classList.add('active');
+            
+            // Reset appointment data
+            Object.keys(appointmentData).forEach(key => {
+                if (key === 'patientInfo') {
+                    Object.keys(appointmentData.patientInfo).forEach(infoKey => {
+                        appointmentData.patientInfo[infoKey] = null;
+                    });
+                } else {
+                    appointmentData[key] = null;
+                }
+            });
+            
+            // Reset form fields
+            document.querySelectorAll('.specialty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.doctor-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            
+            document.getElementById('full-name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('dob').value = '';
+            document.getElementById('gender').value = '';
+            document.getElementById('address').value = '';
+            document.getElementById('reason').value = '';
+            
+            // Hide success message
+            document.getElementById('success-message').classList.add('hidden');
+            
+            // Update button visibility
+            updateButtonVisibility();
+        }
+    </script>
+</body>
+</html>
